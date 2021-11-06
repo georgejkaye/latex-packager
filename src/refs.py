@@ -21,7 +21,6 @@ with open(refs) as rf:
         key = match[1]
         for l in doclines:
             if key in l:
-                print(key)
                 bibs.append(match[0])
                 break
 

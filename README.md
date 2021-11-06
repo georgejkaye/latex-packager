@@ -1,6 +1,8 @@
 # latex-scripts
 
-This repo contains some scripts I wrote to mak
+This repo contains some scripts I wrote to make my life easier.
+
+(They might have been done before, I don't care)
 
 ## `refs.py`
 
