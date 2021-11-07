@@ -12,14 +12,6 @@ if len(sys.argv) == 4:
 else:
     outp = "refs.bib"
 
-
-if len(filematches) == 0:
-    filename = file
-else:
-    filename = filematches[-1][1]
-
-filename = filename + ".bib"
-
 doclines = []
 
 bibs = []
@@ -30,6 +22,7 @@ with open(file) as f:
 with open(refs) as rf:
     line = rf.read()
     matches = re.findall(bib, line)
+    matches.sort(key=lambda match: match[1])
 
     for match in matches:
         key = match[1]
