@@ -1,35 +1,42 @@
 import sys
 import re
+import os
 
 bib = '(@[a-z]*{([a-z0-9]*),\n(.*\n)*?})'
 fname = '(.*?).'
 
-file = sys.argv[1]
-refs = sys.argv[2]
+tex = sys.argv[1]
+refdir = sys.argv[2]
 
 if len(sys.argv) == 4:
     outp = sys.argv[3]
 else:
     outp = "refs.bib"
 
+bibs = []
+keys = []
 doclines = []
 
-bibs = []
-
-with open(file) as f:
+with open(tex) as f:
     doclines = [line.rstrip() for line in f]
 
-with open(refs) as rf:
-    line = rf.read()
-    matches = re.findall(bib, line)
-    matches.sort(key=lambda match: match[1])
+for file in os.listdir(refdir):
+    if file.endswith(".bib"):
+        with open(os.path.join(refdir, file)) as f:
+            text = f.read()
+            ms = re.findall(bib, text)
+            for m in ms:
+                if not m in keys:
+                    keys.append(m)
 
-    for match in matches:
-        key = match[1]
-        for l in doclines:
-            if key in l:
-                bibs.append(match[0])
-                break
+keys.sort(key=lambda m: m[1])
+
+for key in keys:
+    print(key[1])
+    for l in doclines:
+        if key[1] in l:
+            bibs.append(key[0])
+            break
 
 print("Writing minimal bib file to " + outp)
 
