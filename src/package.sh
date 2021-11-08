@@ -123,9 +123,6 @@ latexmk -pdf
 mv $NAME.pdf ..
 
 # delete everything except the bbl (we need it for arxiv)
-rm *aux *blg *dvi *fdb_latexmk *fls *log *out *xcp
+rm *aux *blg *fdb_latexmk *fls *log *out
 
 cd ..
-
-# zip everything up for upload
-zip -r $PROJECT.zip $PROJECT
