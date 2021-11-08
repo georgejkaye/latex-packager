@@ -5,24 +5,35 @@ import os
 bib = '(@[a-z]*{([a-z0-9]*),\n(.*\n)*?})'
 fname = '(.*?).'
 
-refs = sys.argv[1]
-outp = sys.argv[2]
-files = sys.argv[3:]
+tex = sys.argv[1]
+secs = sys.argv[2]
+refdir = sys.argv[3]
+
+if len(sys.argv) == 5:
+    outp = sys.argv[4]
+else:
+    outp = "refs.bib"
 
 bibs = []
 keys = []
 doclines = []
 
-for file in files:
-    with open(file) as f:
-        doclines = [line.rstrip() for line in f]
+with open(tex) as f:
+    doclines = [line.rstrip() for line in f]
 
-with open(refs) as f:
-    text = f.read()
-    ms = re.findall(bib, text)
-    for m in ms:
-        if not m in keys:
-            keys.append(m)
+for file in os.listdir(secs) :
+    with(open(os.path.join(secs,file))) as f :
+        newlines = [line.rstrip() for line in f]
+        doclines = doclines + newlines
+
+for file in os.listdir(refdir):
+    if file.endswith(".bib"):
+        with open(os.path.join(refdir, file)) as f:
+            text = f.read()
+            ms = re.findall(bib, text)
+            for m in ms:
+                if not m in keys:
+                    keys.append(m)
 
 keys.sort(key=lambda m: m[1])
 
