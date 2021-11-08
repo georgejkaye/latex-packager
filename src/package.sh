@@ -9,27 +9,33 @@
 # | - tikz          Tikz figures included by \includestandalone
 # | - refs          Refs folder, containing one or more bibs
 
-
-
 # name of the whole project, the resulting zip will be called this
 PROJECT="$1"
 # location of the project to package, we assume there is a main.tex in this directory
 ROOT="$2"
+# location of scripts directory
+SCRIPTS="$3"
 
-MAIN="main.tex"
+NAME="main"
+MAIN="$NAME.tex"
+MAINTEX="$PROJECT/$MAIN"
 
 SECS="sections"
 REFS="refs"
+TIKZ="tikz"
 
 if [ -d $PROJECT ] ; then
     echo "Directory exists, quitting..."
     exit 1
 fi
 
-mkdir $PROJECT
+mkdir "$PROJECT"
+mkdir "$PROJECT/$TIKZ"
 
 # put in the main tex file
 cp "$ROOT/$MAIN" "$PROJECT/"
+
+TEMP="$PROJECT/temp.txt"
 
 # function to run the script to find which files are used
 filter() {
@@ -39,68 +45,87 @@ filter() {
     DIRNAME=$3
     EXT=$4
 
-    echo "Filtering $MODE with $TEX"
-
-    TEMP="$PROJECT/temp.txt"
-
-    python files.py $MODE $TEX $TEMP
+    python $SCRIPTS/src/files.py $MODE $TEX $TEMP
 
     if [ -f "$TEMP" ] ; then
-
         while IFS= read -r LINE; do
             DIR="$(dirname "${LINE}")" #; FILE="$(basename "${LINE}")"
             mkdir -p "$PROJECT/$DIRNAME/$DIR"
-            cp "$ROOT/$DIRNAME/$LINE.$EXT" "$PROJECT/$DIRNAME/$LINE.$EXT"
-        done < $TEMP
-        
+            cp "$ROOT/$DIRNAME/$LINE$EXT" "$PROJECT/$DIRNAME/$LINE$EXT"
+        done < "$TEMP"
         rm $TEMP
     fi
 }
 
 figures() {
-    filter $1 "tikzfig" "figures" "tikz"
+    filter $1 "tikzfig" "figures" ".tikz"
 }
 
 tikz() {
-    filter $1 "standalone" "tikz" "tex"
+    filter $1 "standalone" "" ".tex"
 }
 
 sections() {
-    filter $1 "section" "sections" "tex"
+    filter $1 "section" "sections" ".tex"
 }
 
 macros() {
-    filter $1 "macros" "macros" "tex"
+    filter $1 "macros" "macros" ".tex"
 }
 
+tikzstyles() {
+    filter $1 "tikzstyles" "figures" ""
+}
+
+refs() {
+    filter $1 "refs" "refs" ".bib"
+}
 
 # first do everything for the main file
-sections "$PROJECT/$MAIN"
-figures "$PROJECT/$MAIN"
-tikz "$PROJECT/$MAIN"
-macros "$PROJECT/$MAIN"
+sections "$MAINTEX"
+figures "$MAINTEX"
+tikz "$MAINTEX"
+macros "$MAINTEX"
+tikzstyles "$MAINTEX"
 
-FILES=$MAIN
+FILES="$MAINTEX"
 
-ls "$PROJECT/$SECS"
-
+# process the sections
+# we assume there are no sections, macros, styles or bibliographies in here
 for FILE in "$PROJECT/$SECS"/* ; do 
-    echo "Processing $FILE"
     figures $FILE
     tikz $FILE
-    macros $FILE
     FILES="$FILES $FILE"
 done
 
 # get minimal refs
-for FILE in "$ROOT/$REFS" ; do
-    NAME="$(basename "$FILE")"
-    python refs.py $REFS $NAME $FILES
-done
+python "$SCRIPTS/src/files.py" "refs" "$MAINTEX" $TEMP
+mkdir "$PROJECT/$REFS"
+
+# for each refs file found by the script, minimise it
+if [ -f $TEMP ] ; then
+    while IFS= read -r LINE; do
+        python $SCRIPTS/src/refs.py $MAINTEX "$ROOT/$REFS/$LINE.bib" "$PROJECT/$REFS/$LINE.bib" $FILES
+    done < $TEMP
+fi
+
+rm $TEMP
 
 # miscellaneous files
 cp "$ROOT/figures/tikzit.sty" "$PROJECT/figures/"
-cp "$ROOT/figures/hypergraphs.tikzstyles" "$PROJECT/figures/"
 cp "$ROOT/tikz/quiver.sty" "$PROJECT/tikz/"
 
-#zip -r $PROJECT.zip $PROJECT
+# build the project
+cd $PROJECT
+latexmk -pdf
+
+# we don't want to zip the pdf, but we do need it for the release
+mv $NAME.pdf ..
+
+# delete everything except the bbl (we need it for arxiv)
+rm *aux *blg *dvi *fdb_latexmk *fls *log *out *xcp
+
+cd ..
+
+# zip everything up for upload
+zip -r $PROJECT.zip $PROJECT

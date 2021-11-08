@@ -20,14 +20,12 @@ def inputexp(dir):
 
 
 braces = '\{(.*?)\}'
-macro = inputexp('macro')
-section = inputexp('section')
+macro = inputexp('macros')
+section = inputexp('sections')
+tikzstyles = inputexp('figures')
 standalone = 'includestandalone(?:\[.*?\])?' + braces
 tikzfig = 'tikzfig' + braces
 refs = 'bibliography\{refs/(.*?)\}'
-
-section = 'input\{sections/(.*?)\}'
-macro = 'input\{macros/(.*?)\}'
 
 if mode == "tikzfig":
     regex = tikzfig
@@ -39,6 +37,8 @@ elif mode == "macros":
     regex = macro
 elif mode == "refs":
     regex = refs
+elif mode == "tikzstyles":
+    regex = tikzstyles
 else:
     print("Bad mode " + mode)
     quit()
@@ -51,7 +51,9 @@ if len(matches) > 0:
 
     matches = sorted(set(matches))
 
+    print("Writing output to " + outp)
+
     with open(outp, "w") as f:
         for m in matches[:-1]:
             f.write(m + "\n")
-        f.write(matches[-1])
+        f.write(matches[-1] + "\n")
