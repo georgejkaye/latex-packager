@@ -83,7 +83,7 @@ refs() {
 
 # first do everything for the main file
 
-if [ test -d "sections" ] ; then
+if [ -d "sections" ] ; then
     sections "$MAINTEX"
 fi
 
