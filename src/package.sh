@@ -82,7 +82,11 @@ refs() {
 }
 
 # first do everything for the main file
-sections "$MAINTEX"
+
+if [ test -d "sections" ] ; then
+    sections "$MAINTEX"
+fi
+
 figures "$MAINTEX"
 tikz "$MAINTEX"
 macros "$MAINTEX"
@@ -92,11 +96,13 @@ FILES="$MAINTEX"
 
 # process the sections
 # we assume there are no sections, macros, styles or bibliographies in here
-for FILE in "$PROJECT/$SECS"/* ; do 
-    figures $FILE
-    tikz $FILE
-    FILES="$FILES $FILE"
-done
+if [ -d "sections" ] ; then
+    for FILE in "$PROJECT/$SECS"/* ; do 
+        figures $FILE
+        tikz $FILE
+        FILES="$FILES $FILE"
+    done
+fi
 
 # get minimal refs
 python "$SCRIPTS/src/files.py" "refs" "$MAINTEX" $TEMP
