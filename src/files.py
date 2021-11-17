@@ -25,7 +25,8 @@ section = inputexp('sections')
 tikzstyles = inputexp('figures')
 standalone = 'includestandalone(?:\[.*?\])?' + braces
 tikzfig = 'tikzfig' + braces
-refs = 'bibliography\{refs/(.*?)\}'
+bibtex = 'bibliography\{refs/(.*?)\}'
+biber = 'addbibresource\{refs/(.*?)\}'
 
 if mode == "tikzfig":
     regex = tikzfig
@@ -35,8 +36,10 @@ elif mode == "section":
     regex = section
 elif mode == "macros":
     regex = macro
-elif mode == "refs":
-    regex = refs
+elif mode == "bibtex":
+    regex = bibtex
+elif mode == "biber":
+    regex = biber
 elif mode == "tikzstyles":
     regex = tikzstyles
 else:

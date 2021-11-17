@@ -15,6 +15,8 @@ PROJECT="$1"
 ROOT="$2"
 # location of scripts directory
 SCRIPTS="$3"
+# whether we're using biblatex
+BIBTEX="$4"
 
 NAME="main"
 MAIN="$NAME.tex"
@@ -81,8 +83,11 @@ refs() {
     filter $1 "refs" "refs" ".bib"
 }
 
-# first do everything for the main file
+biber() {
+    filter $1 "biber" "refs" ".bib"
+}
 
+# first do everything for the main file
 if [ -d "sections" ] ; then
     sections "$MAINTEX"
 fi
@@ -105,17 +110,29 @@ if [ -d "sections" ] ; then
 fi
 
 # get minimal refs
-python "$SCRIPTS/src/files.py" "refs" "$MAINTEX" $TEMP
+if [ $BIBTEX == "biber" ] ; then
+    BIBMODE="biber"
+else 
+    BIBMODE="bibtex"
+fi
+
+echo "python "$SCRIPTS/src/files.py" $BIBMODE "$MAINTEX" $TEMP"
+python "$SCRIPTS/src/files.py" $BIBMODE "$MAINTEX" $TEMP
 mkdir "$PROJECT/$REFS"
 
 # for each refs file found by the script, minimise it
 if [ -f $TEMP ] ; then
     while IFS= read -r LINE; do
-        python $SCRIPTS/src/refs.py $MAINTEX "$ROOT/$REFS/$LINE.bib" "$PROJECT/$REFS/$LINE.bib" $FILES
+        if [ $BIBTEX == "biber" ] ; then
+            BIBFILE=$LINE
+        else 
+            BIBFILE=$LINE.bib
+        fi
+        echo "python $SCRIPTS/src/refs.py $MAINTEX "$ROOT/$REFS/$BIBFILE" "$PROJECT/$REFS/$BIBFILE" $FILES"
+        python $SCRIPTS/src/refs.py $MAINTEX "$ROOT/$REFS/$BIBFILE" "$PROJECT/$REFS/$BIBFILE" $FILES
     done < $TEMP
+    rm $TEMP
 fi
-
-rm $TEMP
 
 # miscellaneous files
 cp "$ROOT/figures/tikzit.sty" "$PROJECT/figures/"
