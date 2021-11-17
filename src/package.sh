@@ -116,7 +116,6 @@ else
     BIBMODE="bibtex"
 fi
 
-echo "python "$SCRIPTS/src/files.py" $BIBMODE "$MAINTEX" $TEMP"
 python "$SCRIPTS/src/files.py" $BIBMODE "$MAINTEX" $TEMP
 mkdir "$PROJECT/$REFS"
 
@@ -128,7 +127,6 @@ if [ -f $TEMP ] ; then
         else 
             BIBFILE=$LINE.bib
         fi
-        echo "python $SCRIPTS/src/refs.py $MAINTEX "$ROOT/$REFS/$BIBFILE" "$PROJECT/$REFS/$BIBFILE" $FILES"
         python $SCRIPTS/src/refs.py $MAINTEX "$ROOT/$REFS/$BIBFILE" "$PROJECT/$REFS/$BIBFILE" $FILES
     done < $TEMP
     rm $TEMP

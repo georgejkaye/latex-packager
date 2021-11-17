@@ -51,11 +51,7 @@ with open(file) as f:
     matches = re.findall(regex, text)
 
 if len(matches) > 0:
-
     matches = sorted(set(matches))
-
-    print("Writing output to " + outp)
-
     with open(outp, "w") as f:
         for m in matches[:-1]:
             f.write(m + "\n")

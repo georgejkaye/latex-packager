@@ -37,8 +37,6 @@ for key in keys:
             bibs.append(key[0])
             break
 
-print("Writing minimal bib file to " + outp)
-
 with open(outp, "w") as f:
     for b in bibs[:-1]:
         f.write(b + "\n\n")
