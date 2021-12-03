@@ -17,9 +17,7 @@ with open("main.tex", "w+") as f:
 
 
 with open("README.md", "w+") as f:
-    f.write("# " + title + "\n")
-    f.write("\n")
-    f.write("This repo has been created from the 'latex-template' repo.\n")
+    f.write("# " + title + "\n\n")
     f.write(
         "This project uses *submodules* to share diagrams and things between repos.\n")
     f.write("To make sure you have them all pulled, do this to initialise them:\n\n")
@@ -36,5 +34,5 @@ with open("README.md", "w+") as f:
     f.write("## Latest release\n\n")
     f.write("* [PDF file](https://github.com/georgejkaye/" +
             title + "/releases/latest/download/" + title + ".pdf)\n")
-    f.write("* [Latest source package](https://github.com/georgejkaye/" +
+    f.write("* [Source code](https://github.com/georgejkaye/" +
             title + "/releases/latest/download/" + title + ".zip)\n")
