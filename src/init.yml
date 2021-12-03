@@ -8,19 +8,19 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Set up repository
-      uses: actions/checkout@v2
-      with:
-        submodules: recursive
     - name: Initialise submodules
-      run: git submodule foreach git pull origin main
+      run: |
+        git submodule git reset --hard origin/main
+        git submodule foreach git pull origin main
     - name: Set up python
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - name: Add the link to the latest release
-      run: echo "$${{ github.event.repository.name }}.pdf" >> README.md
     - name: Generate initial latex file
-      run: python ./latex-scripts/src/init.py ${{ github.event.repository.name }} ${{ github.actor }}
+      run: python ./latex-scripts/src/init.py ${{ inputs.title }} ${{ inputs.author }}
     - name: Commit the changes
       uses: actions-x/commit@v1
+      with:
+        message: "Initialise repo"
+        author: ${{ github.event.user.name }}
+        email: ${{ github.event.user.email }}
