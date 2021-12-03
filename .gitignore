@@ -3,3 +3,5 @@
 .vscode/
 *zip
 *pdf
+*synctex.gz
+*tex
