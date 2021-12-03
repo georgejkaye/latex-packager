@@ -1,0 +1,26 @@
+name: Init project
+description: Initialise the project
+inputs:
+  author:
+    required: true
+  title:
+    required: true 
+runs:
+  using: "composite"
+  steps:
+    - name: Set up repository
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Initialise submodules
+      run: git submodule foreach git pull origin main
+    - name: Set up python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Add the link to the latest release
+      run: echo "$${{ github.event.repository.name }}.pdf" >> README.md
+    - name: Generate initial latex file
+      run: python ./latex-scripts/src/init.py ${{ github.event.repository.name }} ${{ github.actor }}
+    - name: Commit the changes
+      uses: actions-x/commit@v1
