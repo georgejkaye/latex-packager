@@ -2,8 +2,10 @@ name: Init project
 description: Initialise the project
 inputs:
   author:
+    description: "The author of the project"
     required: true
   title:
+    description: "The title of the project"
     required: true 
 runs:
   using: "composite"
@@ -14,6 +16,7 @@ runs:
         python-version: '3.x'
     - name: Generate initial latex file
       run: python ./latex-scripts/src/init.py ${{ inputs.title }} ${{ inputs.author }}
+      shell: bash
     - name: Commit the changes
       uses: actions-x/commit@v1
       with:
