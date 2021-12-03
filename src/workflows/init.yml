@@ -8,10 +8,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Initialise submodules
-      run: |
-        git submodule git reset --hard origin/main
-        git submodule foreach git pull origin main
     - name: Set up python
       uses: actions/setup-python@v2
       with:
