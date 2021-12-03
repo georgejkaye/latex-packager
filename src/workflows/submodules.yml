@@ -7,3 +7,9 @@ runs:
       run: |
         git submodule git reset --hard origin/main
         git submodule foreach git pull origin main
+    - name: Commit the new submodules
+      uses: actions-x/commit@v1
+      with:
+        message: "Updated the submodules"
+        author: ${{ github.event.user.name }}
+        email: ${{ github.event.user.email }}
