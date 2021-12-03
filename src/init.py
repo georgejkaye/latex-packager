@@ -30,6 +30,9 @@ with open("README.md", "w+") as f:
     f.write("```sh\n")
     f.write("git submodule foreach git pull origin main\n")
     f.write("```\n\n")
+    f.write('## GitHub Actions\n\n')
+    f.write(
+        "Every time you push a commit starting with `[build]`, it will be compiled and put in a release.\n\n")
     f.write("## Latest release\n\n")
     f.write("* [PDF file](https://github.com/georgejkaye/" +
             title + "/releases/latest/download/" + title + ".pdf)\n")
