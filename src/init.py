@@ -18,6 +18,12 @@ with open("main.tex", "w+") as f:
 
 with open("README.md", "w+") as f:
     f.write("# " + title + "\n\n")
+    f.write("## Latest release\n\n")
+    f.write("* [PDF file](https://github.com/georgejkaye/" +
+            title + "/releases/latest/download/" + title + ".pdf)\n")
+    f.write("* [Source code](https://github.com/georgejkaye/" +
+            title + "/releases/latest/download/" + title + ".zip)\n")
+    f.write("## Setting up\n\n")
     f.write(
         "This project uses *submodules* to share diagrams and things between repos.\n")
     f.write("To make sure you have them all pulled, do this to initialise them:\n\n")
@@ -31,8 +37,3 @@ with open("README.md", "w+") as f:
     f.write('## GitHub Actions\n\n')
     f.write(
         "Every time you push a commit starting with `[build]`, it will be compiled and put in a release.\n\n")
-    f.write("## Latest release\n\n")
-    f.write("* [PDF file](https://github.com/georgejkaye/" +
-            title + "/releases/latest/download/" + title + ".pdf)\n")
-    f.write("* [Source code](https://github.com/georgejkaye/" +
-            title + "/releases/latest/download/" + title + ".zip)\n")
