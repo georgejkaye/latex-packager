@@ -18,11 +18,8 @@ with open("main.tex", "w+") as f:
 
 with open("README.md", "w+") as f:
     f.write("# " + title + "\n\n")
-    f.write("## Latest release\n\n")
-    f.write("* [PDF file](https://github.com/georgejkaye/" +
-            title + "/releases/latest/download/" + title + ".pdf)\n")
-    f.write("* [Source code](https://github.com/georgejkaye/" +
-            title + "/releases/latest/download/" + title + ".zip)\n")
+    f.write("* **[Latest release](https://github.com/georgejkaye/" +
+            title + "/releases/latest)**\n")
     f.write("## Setting up\n\n")
     f.write(
         "This project uses *submodules* to share diagrams and things between repos.\n")
