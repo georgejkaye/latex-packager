@@ -2,7 +2,7 @@ import sys
 import re
 import os
 
-bib = '(@[a-z]*{([a-z0-9]*),\n(.*\n)*?})'
+bib = '(@[a-z]*\{([a-z0-9\-]*),\n(.*\n)*?\})'
 fname = '(.*?).'
 
 tex = sys.argv[1]
