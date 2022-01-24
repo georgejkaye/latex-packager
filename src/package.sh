@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Usage: package.sh <conference> <repo> <scripts dir> <bibtex|biblatex> <variant> 
+#
 # We assume a project layout as
 # locs1970
 # | - main.tex      The main latex file 
@@ -9,7 +11,7 @@
 # | - tikz          Tikz figures included by \includestandalone
 # | - refs          Refs folder, containing one or more bibs
 
-# name of the whole project, the resulting zip will be called this
+# name of the whole project, this will be used to begin the file and zip name
 PROJECT="$1"
 # location of the project to package, we assume there is a main.tex in this directory
 ROOT="$2"
@@ -17,27 +19,44 @@ ROOT="$2"
 SCRIPTS="$3"
 # whether we're using biblatex
 BIBTEX="$4"
+# whether we are compiling a variant
+VARIANT="$5"
 
-NAME="main"
-MAIN="$NAME.tex"
-MAINTEX="$PROJECT/$MAIN"
+MAIN="main"
+MAINFILE="$MAIN.tex"
+MAINPATH="$ROOT/$MAINFILE"
+
+if [[ $VARIANT == "" ]] ; then
+    PACKAGE="$PROJECT"
+else 
+    PACKAGE="$PROJECT-$VARIANT"
+    VARIANTFILE="$MAIN-$VARIANT.tex"
+    VARIANTPATH="$ROOT/$MAIN-$VARIANT.tex"
+fi
 
 SECS="sections"
 REFS="refs"
 TIKZ="tikz"
 
-if [ -d $PROJECT ] ; then
-    echo "Directory exists, quitting..."
+if [ -d $PACKAGE ] ; then
+    echo "Package directory $PACKAGE exists, quitting..."
     exit 1
 fi
 
-mkdir "$PROJECT"
-mkdir "$PROJECT/$TIKZ"
+mkdir "$PACKAGE"
+mkdir "$PACKAGE/$TIKZ"
 
 # put in the main tex file
-cp "$ROOT/$MAIN" "$PROJECT/"
+cp "$MAINPATH" "$PACKAGE/"
 
-TEMP="$PROJECT/temp.txt"
+# if we're packaging a variant, add its pre-preamble
+if [[ $NAME == "" ]] ; then
+    cp "$VARIANTPATH" "$PACKAGE/"
+fi
+
+TEMP="$PACKAGE/temp.txt"
+
+echo "Making package $PACKAGE"
 
 # function to run the script to find which files are used
 filter() {
@@ -52,8 +71,8 @@ filter() {
     if [ -f "$TEMP" ] ; then
         while IFS= read -r LINE; do
             DIR="$(dirname "${LINE}")" #; FILE="$(basename "${LINE}")"
-            mkdir -p "$PROJECT/$DIRNAME/$DIR"
-            cp "$ROOT/$DIRNAME/$LINE$EXT" "$PROJECT/$DIRNAME/$LINE$EXT"
+            mkdir -p "$PACKAGE/$DIRNAME/$DIR"
+            cp "$ROOT/$DIRNAME/$LINE$EXT" "$PACKAGE/$DIRNAME/$LINE$EXT"
         done < "$TEMP"
         rm $TEMP
     fi
@@ -88,21 +107,22 @@ biber() {
 }
 
 # first do everything for the main file
-if [ -d "sections" ] ; then
-    sections "$MAINTEX"
+echo "Looking for included files in main file..."
+if [ -d "$ROOT/sections" ] ; then
+    sections "$MAINPATH"
 fi
+figures "$MAINPATH"
+tikz "$MAINPATH"
+macros "$MAINPATH"
+tikzstyles "$MAINPATH"
 
-figures "$MAINTEX"
-tikz "$MAINTEX"
-macros "$MAINTEX"
-tikzstyles "$MAINTEX"
-
-FILES="$MAINTEX"
+FILES="$MAINPATH"
 
 # process the sections
 # we assume there are no sections, macros, styles or bibliographies in here
-if [ -d "sections" ] ; then
-    for FILE in "$PROJECT/$SECS"/* ; do 
+if [ -d "$ROOT/sections" ] ; then
+    for FILE in "$PACKAGE/$SECS"/* ; do 
+        echo "Looking for included files in $FILE..."
         figures $FILE
         tikz $FILE
         FILES="$FILES $FILE"
@@ -116,8 +136,8 @@ else
     BIBMODE="bibtex"
 fi
 
-python "$SCRIPTS/src/files.py" $BIBMODE "$MAINTEX" $TEMP
-mkdir "$PROJECT/$REFS"
+python "$SCRIPTS/src/files.py" $BIBMODE $MAINPATH $TEMP
+mkdir "$PACKAGE/$REFS"
 
 # for each refs file found by the script, minimise it
 if [ -f $TEMP ] ; then
@@ -127,23 +147,26 @@ if [ -f $TEMP ] ; then
         else 
             BIBFILE=$LINE.bib
         fi
-        python $SCRIPTS/src/refs.py $MAINTEX "$ROOT/$REFS/$BIBFILE" "$PROJECT/$REFS/$BIBFILE" $FILES
+        python $SCRIPTS/src/refs.py $MAINPATH "$ROOT/$REFS/$BIBFILE" "$PACKAGE/$REFS/$BIBFILE" $FILES
     done < $TEMP
     rm $TEMP
 fi
 
 # miscellaneous files
-cp "$ROOT/figures/tikzit.sty" "$PROJECT/figures/"
-cp "$ROOT/tikz/quiver.sty" "$PROJECT/tikz/"
+cp "$ROOT/figures/tikzit.sty" "$PACKAGE/figures/"
+cp "$ROOT/tikz/quiver.sty" "$PACKAGE/tikz/"
 
 # build the project
-cd $PROJECT
-latexmk -pdf
+cd $PACKAGE
+echo "Using latexmk to build the document..."
+latexmk -quiet -pdf $VARIANTFILE
 
 # we don't want to zip the pdf, but we do need it for the release
-mv $NAME.pdf ..
+echo "Moving the compiled pdf out of the package..."
+mv "main-$VARIANT.pdf" ..
 
 # delete everything except the bbl (we need it for arxiv)
+echo "Cleaning up..."
 rm *aux *blg *fdb_latexmk *fls *log *out
 
 cd ..

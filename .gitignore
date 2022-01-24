@@ -5,3 +5,7 @@
 *pdf
 *synctex.gz
 *tex
+*aux
+*fdb_latexmk
+*fls
+*log
