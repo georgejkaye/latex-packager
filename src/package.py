@@ -27,30 +27,30 @@ def copy_into_project(project_name, project_dir, file):
     os.makedirs(os.path.dirname(new_path), exist_ok=True)
     print(f"Copying {os.path.abspath(original_path)} into project")
     shutil.copy2(original_path, new_path)
+    return original_path
 
 
-def copy_input_into_project(project_name, project_dir, file):
+def copy_file_with_extension_into_project(project_name, project_dir, file, extension):
+    file = f"{file}{extension}"
     full_path = os.path.join(project_dir, file)
     if not os.path.exists(full_path):
-        full_path_tex = f"{full_path}.tex"
-        if not os.path.exists(full_path_tex):
-            print(
-                f"Could not find input {full_path} or {full_path_tex}, quitting...")
-            exit(1)
-        else:
-            full_path = full_path_tex
-            file = f"{file}.tex"
+        print(f"Could not find file {full_path}, quitting...")
+        exit(1)
+    return copy_into_project(project_name, project_dir, file)
 
-    copy_into_project(project_name, project_dir, file)
-    return full_path
+
+def copy_file_with_maybe_extension_into_project(project_name, project_dir, file, extension):
+    full_path = os.path.join(project_dir, file)
+    if not os.path.exists(full_path):
+        return copy_file_with_extension_into_project(project_name, project_dir, file, extension)
+
+    return copy_into_project(project_name, project_dir, file)
 
 
 def copy_tikzfig_into_project(project_name, project_dir, file):
-    figure_path = os.path.join("figures", f"{file}.tikz")
-    full_path = os.path.join(project_dir, "figures", f"{file}.tikz")
-    if not os.path.exists(full_path):
-        print(f"Could not find tikzfig {full_path}, quitting...")
-    copy_into_project(project_name, project_dir, figure_path)
+    figure_path = os.path.join("figures", file)
+    return copy_file_with_extension_into_project(
+        project_name, project_dir, figure_path, ".tikz")
 
 
 def process_file(project_name, project_dir, file):
@@ -58,11 +58,24 @@ def process_file(project_name, project_dir, file):
     copied_files = []
 
     for file in files["input"]:
-        copied_file = copy_input_into_project(project_name, project_dir, file)
+        copied_file = copy_file_with_maybe_extension_into_project(
+            project_name, project_dir, file, ".tex")
         copied_files.append(copied_file)
 
     for file in files["tikzfig"]:
         copy_tikzfig_into_project(project_name, project_dir, file)
+
+    for file in files["package"]:
+        copy_file_with_extension_into_project(
+            project_name, project_dir, file, ".sty")
+
+    for file in files["bibtex"]:
+        copy_file_with_maybe_extension_into_project(
+            project_name, project_dir, file, ".bib")
+
+    for file in files["biblatex"]:
+        copy_file_with_extension_into_project(
+            project_name, project_dir, file, "")
 
     return copied_files
 
