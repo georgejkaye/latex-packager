@@ -66,9 +66,9 @@ def get_included_files(file):
     packages = filter(PACKAGE, text)
 
     return {
-        "input": [*inputs, *standalones],
+        "input": inputs + standalones,
         "bibtex": bibtexes,
         "biblatex": biblatexes,
-        "tikzfig": [*tikzfigs, *graphs, *strings],
+        "tikzfig": tikzfigs + graphs + strings,
         "package": packages
     }

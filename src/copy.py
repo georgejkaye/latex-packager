@@ -9,13 +9,13 @@ def check_project_exists(project_dir, root_file):
     full_root = os.path.join(project_dir, root_file)
     if os.path.exists(full_root):
         return full_root
-    print(f"Project root {full_root} does not exist, quitting...")
+    print("Project root " + full_root + "does not exist, quitting...")
     exit(1)
 
 
 def make_project_dir(output_dir):
     if os.path.isdir(output_dir):
-        print(f"Directory {output_dir} already exists, quitting...")
+        print("Directory " + output_dir + " already exists, quitting...")
         exit(1)
 
     os.makedirs(output_dir)
@@ -25,16 +25,16 @@ def copy_into_project(output_dir, project_dir, file):
     original_path = os.path.join(project_dir, file)
     new_path = os.path.join(output_dir, file)
     os.makedirs(os.path.dirname(new_path), exist_ok=True)
-    print(f"Copying {os.path.abspath(original_path)} into project")
+    print("Copying " + os.path.abspath(original_path) + " into project")
     shutil.copy2(original_path, new_path)
     return original_path
 
 
 def copy_file_with_extension_into_project(output_dir, project_dir, file, extension):
-    file = f"{file}{extension}"
+    file = file + extension
     full_path = os.path.join(project_dir, file)
     if not os.path.exists(full_path):
-        print(f"Could not find file {full_path}, quitting...")
+        print("Could not find file " + full_path + " quitting...")
         exit(1)
     return copy_into_project(output_dir, project_dir, file)
 
@@ -84,13 +84,13 @@ def process_files(output_dir, project_dir, frontier):
     if len(frontier) > 0:
         current_file = frontier.pop()
         copied_files = process_file(output_dir, project_dir, current_file)
-        frontier = [*frontier, *copied_files]
+        frontier = frontier + copied_files
         process_files(output_dir, project_dir, frontier)
 
 
 def copy_project_files(output_dir, project_dir, root_file):
 
-    root_tex = f"{root_file}.tex"
+    root_tex = root_file + ".tex"
     full_root = check_project_exists(project_dir, root_tex)
 
     make_project_dir(output_dir)
