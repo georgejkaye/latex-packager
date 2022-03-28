@@ -3,6 +3,7 @@ import sys
 import shutil
 
 from filter import get_included_files
+from refs import get_used_refs
 
 
 def check_project_exists(project_dir, root_file):
@@ -27,7 +28,10 @@ def copy_into_project(output_dir, project_dir, file):
     os.makedirs(os.path.dirname(new_path), exist_ok=True)
     print("Copying " + os.path.abspath(original_path) + " into project")
     shutil.copy2(original_path, new_path)
-    return original_path
+    return {
+        "copied_file": original_path,
+        "relative_file": file
+    }
 
 
 def copy_file_with_extension_into_project(output_dir, project_dir, file, extension):
@@ -42,7 +46,8 @@ def copy_file_with_extension_into_project(output_dir, project_dir, file, extensi
 def copy_file_with_maybe_extension_into_project(output_dir, project_dir, file, extension):
     full_path = os.path.join(project_dir, file)
     if not os.path.exists(full_path):
-        return copy_file_with_extension_into_project(output_dir, project_dir, file, extension)
+        return copy_file_with_extension_into_project(
+            output_dir, project_dir, file, extension)
 
     return copy_into_project(output_dir, project_dir, file)
 
@@ -56,11 +61,12 @@ def copy_tikzfig_into_project(output_dir, project_dir, file):
 def process_file(output_dir, project_dir, file):
     files = get_included_files(file)
     copied_files = []
+    bibresources = []
 
     for file in files["input"]:
-        copied_file = copy_file_with_maybe_extension_into_project(
+        copied = copy_file_with_maybe_extension_into_project(
             output_dir, project_dir, file, ".tex")
-        copied_files.append(copied_file)
+        copied_files.append(copied["copied_file"])
 
     for file in files["tikzfig"]:
         copy_tikzfig_into_project(output_dir, project_dir, file)
@@ -70,22 +76,45 @@ def process_file(output_dir, project_dir, file):
             output_dir, project_dir, file, ".sty")
 
     for file in files["bibtex"]:
-        copy_file_with_maybe_extension_into_project(
+        copied = copy_file_with_maybe_extension_into_project(
             output_dir, project_dir, file, ".bib")
+        bibresources.append(copied["relative_file"])
 
     for file in files["biblatex"]:
-        copy_file_with_extension_into_project(
+        copied = copy_file_with_extension_into_project(
             output_dir, project_dir, file, "")
+        bibresources.append(copied["relative_file"])
 
-    return copied_files
+    refs = files["refs"]
+
+    return {
+        "copied": copied_files,
+        "bibresources": bibresources,
+        "refs": refs
+    }
 
 
-def process_files(output_dir, project_dir, frontier):
+def process_files(output_dir, project_dir, frontier, bibresources, refs):
     if len(frontier) > 0:
         current_file = frontier.pop()
-        copied_files = process_file(output_dir, project_dir, current_file)
-        frontier = frontier + copied_files
-        process_files(output_dir, project_dir, frontier)
+        copied = process_file(output_dir, project_dir, current_file)
+        for file in copied["copied"]:
+            if file not in frontier:
+                frontier.append(file)
+
+        for resource in copied["bibresources"]:
+            if resource not in bibresources:
+                bibresources.append(resource)
+        for ref in copied["refs"]:
+            if ref not in refs:
+                refs.append(ref)
+
+        return process_files(output_dir, project_dir, frontier, bibresources, refs)
+    else:
+        return {
+            "bibresources": bibresources,
+            "refs": refs
+        }
 
 
 def copy_project_files(output_dir, project_dir, root_file):
@@ -95,7 +124,11 @@ def copy_project_files(output_dir, project_dir, root_file):
 
     make_project_dir(output_dir)
     copy_into_project(output_dir, project_dir, root_tex)
-    process_files(output_dir, project_dir, [full_root])
+    process_output = process_files(
+        output_dir, project_dir, [full_root], [], [])
+    bibresources = process_output["bibresources"]
+    refs = process_output["refs"]
+    get_used_refs(output_dir, project_dir, bibresources, refs)
 
 
 args = ["output_dir", "project_dir", "root_file"]

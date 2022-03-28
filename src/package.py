@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 
-from copy import copy_project_files
+from process import copy_project_files
 
 args = ["output_dir", "project_dir", "root_file"]
 

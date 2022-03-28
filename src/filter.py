@@ -1,6 +1,5 @@
 
 import re
-from threading import local
 
 # modes
 INPUT = 0
@@ -11,6 +10,7 @@ TIKZFIG = 4
 STRINGS = 5
 GRAPHS = 6
 PACKAGE = 7
+CITE = 8
 
 # regexes
 braces = '\{\s*(.*?)\s*\}'
@@ -22,9 +22,10 @@ graphs = 'graphtikz' + braces
 bibtex = 'bibliography' + braces
 biblatex = 'addbibresource' + braces
 package = 'usepackage' + braces
+refs = 'cite' + braces
 
 regexes = [input, standalone, bibtex, biblatex,
-           tikzfig, strings, graphs, package]
+           tikzfig, strings, graphs, package, refs]
 
 
 def filter(mode, text):
@@ -32,7 +33,7 @@ def filter(mode, text):
     try:
         regex = regexes[mode]
     except:
-        print("Bad mode " + mode)
+        print("Bad mode " + str(mode))
         exit(1)
 
     matches = re.findall(regex, text)
@@ -64,11 +65,13 @@ def get_included_files(file):
     graphs = list(map(lambda x: "graphs/" + x, filter(GRAPHS, text)))
     strings = list(map(lambda x: "strings/" + x, filter(STRINGS, text)))
     packages = filter(PACKAGE, text)
+    cite = filter(CITE, text)
 
     return {
         "input": inputs + standalones,
         "bibtex": bibtexes,
         "biblatex": biblatexes,
         "tikzfig": tikzfigs + graphs + strings,
-        "package": packages
+        "package": packages,
+        "refs": cite
     }
