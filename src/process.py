@@ -1,3 +1,4 @@
+import subprocess
 import os
 import sys
 import shutil
@@ -10,7 +11,7 @@ def check_project_exists(project_dir, root_file):
     full_root = os.path.join(project_dir, root_file)
     if os.path.exists(full_root):
         return full_root
-    print("Project root " + full_root + "does not exist, quitting...")
+    print("Project root " + full_root + " does not exist, quitting...")
     exit(1)
 
 
@@ -32,6 +33,13 @@ def copy_into_project(output_dir, project_dir, file):
         "copied_file": original_path,
         "relative_file": file
     }
+
+
+def compile_sublatex_and_copy(output_dir, project_dir, file):
+    tex = f"{file}.tex"
+    pdf = f"{file}.pdf"
+    subprocess.run(["latexmk", "-pdf", "-cd", tex])
+    copy_into_project(output_dir, project_dir, pdf)
 
 
 def copy_file_with_extension_into_project(output_dir, project_dir, file, extension):
@@ -84,6 +92,9 @@ def process_file(output_dir, project_dir, file):
         copied = copy_file_with_extension_into_project(
             output_dir, project_dir, file, "")
         bibresources.append(copied["relative_file"])
+
+    for file in files["pdfs"]:
+        compile_sublatex_and_copy(output_dir, project_dir, file[1])
 
     refs = files["refs"]
 

@@ -11,6 +11,7 @@ STRINGS = 5
 GRAPHS = 6
 PACKAGE = 7
 CITE = 8
+PDF = 9
 
 # regexes
 braces = '\{\s*(.*?)\s*\}'
@@ -23,9 +24,10 @@ bibtex = 'bibliography' + braces
 biblatex = 'addbibresource' + braces
 package = 'usepackage' + braces
 refs = 'cite' + braces
+pdf = 'includepdf(\[.*?\])?' + braces
 
 regexes = [input, standalone, bibtex, biblatex,
-           tikzfig, strings, graphs, package, refs]
+           tikzfig, strings, graphs, package, refs, pdf]
 
 
 def filter(mode, text):
@@ -66,6 +68,7 @@ def get_included_files(file):
     strings = list(map(lambda x: "strings/" + x, filter(STRINGS, text)))
     packages = filter(PACKAGE, text)
     cite = filter(CITE, text)
+    pdfs = filter(PDF, text)
 
     return {
         "input": inputs + standalones,
@@ -73,5 +76,6 @@ def get_included_files(file):
         "biblatex": biblatexes,
         "tikzfig": tikzfigs + graphs + strings,
         "package": packages,
-        "refs": cite
+        "refs": cite,
+        "pdfs": pdfs
     }
