@@ -28,7 +28,11 @@ def copy_into_project(output_dir, project_dir, file):
     new_path = os.path.join(output_dir, file)
     os.makedirs(os.path.dirname(new_path), exist_ok=True)
     print("Copying " + os.path.abspath(original_path) + " into project")
-    shutil.copy2(original_path, new_path)
+    try:
+        shutil.copy2(original_path, new_path)
+    except:
+        print(f"Could not copy file {original_path}, exiting...")
+        exit(1)
     return {
         "copied_file": original_path,
         "relative_file": file
@@ -36,7 +40,7 @@ def copy_into_project(output_dir, project_dir, file):
 
 
 def compile_sublatex_and_copy(output_dir, project_dir, file):
-    tex = f"{file}.tex"
+    tex = os.path.join(project_dir, f"{file}.tex")
     pdf = f"{file}.pdf"
     subprocess.run(["latexmk", "-pdf", "-cd", tex])
     copy_into_project(output_dir, project_dir, pdf)
@@ -94,7 +98,10 @@ def process_file(output_dir, project_dir, file):
         bibresources.append(copied["relative_file"])
 
     for file in files["pdfs"]:
-        compile_sublatex_and_copy(output_dir, project_dir, file[1])
+        compile_sublatex_and_copy(output_dir, project_dir, file)
+
+    for file in files["graphics"]:
+        copy_into_project(output_dir, project_dir, file)
 
     refs = files["refs"]
 

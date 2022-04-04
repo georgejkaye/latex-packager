@@ -12,11 +12,13 @@ GRAPHS = 6
 PACKAGE = 7
 CITE = 8
 PDF = 9
+GRAPHICS = 10
 
 # regexes
 braces = '\{\s*(.*?)\s*\}'
+options = '(?:\[.*?\])?'
 input = 'input' + braces
-standalone = 'includestandalone(?:\[.*?\])?' + braces
+standalone = 'includestandalone' + options + braces
 tikzfig = 'tikzfig' + braces
 strings = 'stringtikz' + braces
 graphs = 'graphtikz' + braces
@@ -24,10 +26,11 @@ bibtex = 'bibliography' + braces
 biblatex = 'addbibresource' + braces
 package = 'usepackage' + braces
 refs = 'cite' + braces
-pdf = 'includepdf(\[.*?\])?' + braces
+pdf = 'includepdf' + options + braces
+graphics = 'includegraphics' + options + braces
 
 regexes = [input, standalone, bibtex, biblatex,
-           tikzfig, strings, graphs, package, refs, pdf]
+           tikzfig, strings, graphs, package, refs, pdf, graphics]
 
 
 def filter(mode, text):
@@ -69,6 +72,7 @@ def get_included_files(file):
     packages = filter(PACKAGE, text)
     cite = filter(CITE, text)
     pdfs = filter(PDF, text)
+    graphics = filter(GRAPHICS, text)
 
     return {
         "input": inputs + standalones,
@@ -77,5 +81,6 @@ def get_included_files(file):
         "tikzfig": tikzfigs + graphs + strings,
         "package": packages,
         "refs": cite,
-        "pdfs": pdfs
+        "pdfs": pdfs,
+        "graphics": graphics
     }
