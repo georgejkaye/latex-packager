@@ -9,27 +9,14 @@ This repo contains some scripts I wrote to make my life easier.
 Initialises an empty latex file and readme, using a given title and author.
 This is designed to work with my personal `latex-template` github template.
 
-The readme details how to handle the submodules, and contains a link to `repo.pdf` and `repo.zip` in the latest release.
+The readme details how to handle the submodules, and contains a link to the latest release.
 
-## `package.sh`
+## `package.py`
 
 Bundles a latex file and all its dependencies into a minimal zip package.
-Compatible with `tikzit` and tikzpictures included through `includestandalone`.
-Also allows you to bundle in some macro files (although it currently does not minimise these).
 
-Requires your latex project to be in a particular structure:
-
-```sh
-locs1970
-| - main.tex      The main latex file 
-| - sections      Supplementary latex files, included by \input
-| - macros        Macro files, included by \input
-| - figures       Tikz figures included by \tikzfig 
-    | - style.tikzstyles
-    | - tikzit.sty
-| - tikz          Tikz figures included by \includestandalone
-    | - quiver.sty
-| - refs          Refs folder, containing one or more bibs
+```py
+python package.py output_dir input_dir main
 ```
 
 ## `refs.py`
