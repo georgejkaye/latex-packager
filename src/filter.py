@@ -53,6 +53,13 @@ def filter(mode, text):
                     local_packages.append(match)
             matches = local_packages
 
+        if mode == CITE:
+            all_refs = []
+            for match in matches:
+                splitted = match.split(",")
+                all_refs = all_refs + splitted
+            matches = all_refs
+
         return matches
 
     return []
