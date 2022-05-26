@@ -46,10 +46,12 @@ def compile_sublatex_and_copy(output_dir, project_dir, file):
     copy_into_project(output_dir, project_dir, pdf)
 
 
-def copy_file_with_extension_into_project(output_dir, project_dir, file, extension):
+def copy_file_with_extension_into_project(output_dir, project_dir, file, extension, allow_fail=False):
     file = file + extension
     full_path = os.path.join(project_dir, file)
     if not os.path.exists(full_path):
+        if allow_fail :
+            return None  
         print("Could not find file " + full_path + " quitting...")
         exit(1)
     return copy_into_project(output_dir, project_dir, file)
@@ -102,6 +104,9 @@ def process_file(output_dir, project_dir, file):
 
     for file in files["graphics"]:
         copy_into_project(output_dir, project_dir, file)
+
+    for file in files["classes"]:
+        copy_file_with_extension_into_project(output_dir, project_dir, file, ".cls", True)
 
     refs = files["refs"]
 

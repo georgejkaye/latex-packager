@@ -13,6 +13,7 @@ PACKAGE = 7
 CITE = 8
 PDF = 9
 GRAPHICS = 10
+CLASS = 11
 
 # regexes
 braces = '\{\s*(.*?)\s*\}'
@@ -28,9 +29,10 @@ package = 'usepackage' + braces
 refs = 'cite' + braces
 pdf = 'includepdf' + options + braces
 graphics = 'includegraphics' + options + braces
+docclass = 'documentclass' + options + braces
 
 regexes = [input, standalone, bibtex, biblatex,
-           tikzfig, strings, graphs, package, refs, pdf, graphics]
+           tikzfig, strings, graphs, package, refs, pdf, graphics, docclass]
 
 
 def filter(mode, text):
@@ -80,6 +82,7 @@ def get_included_files(file):
     cite = filter(CITE, text)
     pdfs = filter(PDF, text)
     graphics = filter(GRAPHICS, text)
+    classes = filter(CLASS, text)
 
     return {
         "input": inputs + standalones,
@@ -89,5 +92,6 @@ def get_included_files(file):
         "package": packages,
         "refs": cite,
         "pdfs": pdfs,
-        "graphics": graphics
+        "graphics": graphics,
+        "classes": classes
     }
