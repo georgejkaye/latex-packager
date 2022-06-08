@@ -13,7 +13,7 @@ def compile_latex(output_dir, root_file):
     # Compile the latex file
     p = subprocess.run(["latexmk", "-pdf", "-cd", input_tex])
     if p.returncode != 0:
-        print("Error compiling document!")
+        print("Could not compile document")
         exit(1)
     # Clean up after compilation, but keep the bbl (we need it for arxiv)
     subprocess.run(["latexmk", "-c", "-cd", input_tex])
