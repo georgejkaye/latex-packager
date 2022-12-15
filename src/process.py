@@ -59,7 +59,7 @@ def copy_file_with_extension_into_project(output_dir, project_dir, file, extensi
 
 def copy_file_with_maybe_extension_into_project(output_dir, project_dir, file, extension):
     full_path = os.path.join(project_dir, file)
-    if not os.path.exists(full_path):
+    if not os.path.exists(full_path) or os.path.isdir(full_path):
         return copy_file_with_extension_into_project(
             output_dir, project_dir, file, extension)
 
