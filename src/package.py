@@ -11,7 +11,10 @@ def compile_latex(output_dir, root_file):
     input_tex = os.path.join(output_dir, root_file + ".tex")
     output_pdf = os.path.join(output_dir, root_file + ".pdf")
     # Compile the latex file
-    subprocess.run(["latexmk", "-pdf", "-cd", input_tex])
+    p = subprocess.run(["latexmk", "-pdf", "-cd", input_tex])
+    if p.returncode != 0:
+        print("Error compiling document!")
+        exit(1)
     # Clean up after compilation, but keep the bbl (we need it for arxiv)
     subprocess.run(["latexmk", "-c", "-cd", input_tex])
     # We don't want to zip the pdf, but we do want to keep it around
