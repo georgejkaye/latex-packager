@@ -47,7 +47,7 @@ def compile_latex(input_dir, root_file, output_dir):
 
 
 source_file_regex = '\(\./([a-z0-9\-/\n]*\.([a-z]*))'
-binary_file_regex = '<use (.*)>'
+binary_file_regex = '<\./(.*)>'
 
 no_copy_extensions = ["aux", "out", "nav"]
 
