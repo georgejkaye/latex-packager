@@ -23,6 +23,7 @@ def move_and_replace(original_dir, file, new_dir):
     new_path = os.path.join(new_dir, file)
     if os.path.isfile(new_path):
         os.remove(new_path)
+    print(f"Moving {original_path} to {new_dir}")
     shutil.move(original_path, new_dir)
 
 
@@ -37,13 +38,12 @@ def compile_latex(input_dir, root_file, output_dir):
         exit(1)
     # Copy the root file into the output, as it's not imported in the log
     shutil.copy(input_tex, output_dir)
-    # Store the log in the current working directory so we can use it later
-    move_and_replace(input_dir, f"{root_file}.log", ".")
-    move_and_replace(input_dir, f"{root_file}.blg", ".")
-    # Store the pdf in the current working directory so we can upload it
-    move_and_replace(input_dir, f"{root_file}.pdf", ".")
-    # Clean up after compilation
-    subprocess.run(["latexmk", "-c", "-cd", input_tex])
+    if not input_dir == ".":
+        # Store the log in the current working directory so we can use it later
+        move_and_replace(input_dir, f"{root_file}.log", ".")
+        move_and_replace(input_dir, f"{root_file}.blg", ".")
+        # Store the pdf in the current working directory so we can upload it
+        move_and_replace(input_dir, f"{root_file}.pdf", ".")
 
 
 source_file_regex = '\(\./([a-z0-9\-/\n]*\.([a-z]*))'
