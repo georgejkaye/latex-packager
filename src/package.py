@@ -46,7 +46,7 @@ def compile_latex(input_dir, root_file, output_dir):
         move_and_replace(input_dir, f"{root_file}.pdf", ".")
 
 
-source_file_regex = '\(\./([a-z0-9\-/\n]*\.([a-z]*))'
+source_file_regex = '\(\./([a-z0-9\-/\n]*\.([a-z\n]*))'
 binary_file_regex = '<\./(.*)>'
 
 no_copy_extensions = ["aux", "out", "nav"]
@@ -61,7 +61,7 @@ def copy_files_into_project(input_dir, root_file, output_dir):
     source_files = re.findall(source_file_regex, log_text)
     all_files = re.findall(binary_file_regex, log_text)
     for file in source_files:
-        if not file[1] in no_copy_extensions:
+        if not file[1].replace("\n", "") in no_copy_extensions:
             all_files.append(file[0])
     for file in all_files:
         # Sometimes the file names are spliced across lines
