@@ -24,7 +24,10 @@ def move_and_replace(original_dir, file, new_dir):
     if os.path.isfile(new_path):
         os.remove(new_path)
     print(f"Moving {original_path} to {new_dir}")
-    shutil.move(original_path, new_dir)
+    try:
+        shutil.move(original_path, new_dir)
+    except:
+        print("No bbl file found, continuing...")
 
 
 def compile_latex(input_dir, root_file, output_dir):
@@ -47,7 +50,7 @@ def compile_latex(input_dir, root_file, output_dir):
 
 
 source_file_regex = '\(\./([a-z0-9\-/\n]*\.([a-z\n]*))'
-binary_file_regex = '<\./(.*)>'
+binary_file_regex = '<\./(.*?)(?:>|,)'
 
 no_copy_extensions = ["aux", "out", "nav"]
 
@@ -65,7 +68,7 @@ def copy_files_into_project(input_dir, root_file, output_dir):
             all_files.append(file[0])
     for file in all_files:
         # Sometimes the file names are spliced across lines
-        file_name = file.replace("\n", "")
+        file_name = file.replace("\n", "").replace("//", "/")
         original_file_path = os.path.join(input_dir, file_name)
         new_file_path = os.path.join(output_dir, file_name)
         print(f"Copying {original_file_path} to {new_file_path}")
