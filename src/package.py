@@ -10,8 +10,9 @@ args = ["output_dir", "input_dir", "root_file"]
 
 def make_output_dir(output_dir):
     if os.path.isdir(output_dir):
-        overwrite = input("Directory " + output_dir +
-                          " already exists, overwrite? (y/N) ")
+        overwrite = input(
+            "Directory " + output_dir + " already exists, overwrite? (y/N) "
+        )
         if not overwrite == "y":
             exit(1)
         shutil.rmtree(output_dir)
@@ -49,8 +50,8 @@ def compile_latex(input_dir, root_file, output_dir):
         move_and_replace(input_dir, f"{root_file}.pdf", ".")
 
 
-source_file_regex = '\(\./([a-z0-9\-/\n]*\.([a-z\n]*))'
-binary_file_regex = '<\./(.*?)(?:>|,)'
+source_file_regex = "\(\./([a-z0-9\-/\n]*\.([a-z\n]*))"
+binary_file_regex = "<\./(.*?)(?:>|,)"
 
 no_copy_extensions = ["aux", "out", "nav"]
 
@@ -58,7 +59,7 @@ no_copy_extensions = ["aux", "out", "nav"]
 def copy_files_into_project(input_dir, root_file, output_dir):
     # Open the log file
     output_log_file = root_file + ".log"
-    with open(output_log_file, "r") as f:
+    with open(output_log_file, "r", encoding="utf-8", errors="ignore") as f:
         log_text = f.read()
     # Find the files that are included by the build process
     source_files = re.findall(source_file_regex, log_text)
@@ -68,7 +69,7 @@ def copy_files_into_project(input_dir, root_file, output_dir):
             all_files.append(file[0])
     for file in all_files:
         # Sometimes the file names are spliced across lines
-        file_name = file.replace("\n", "").replace("//", "/")
+        file_name = file.replace("\npdf", "").replace("\n", "").replace("//", "/")
         original_file_path = os.path.join(input_dir, file_name)
         new_file_path = os.path.join(output_dir, file_name)
         print(f"Copying {original_file_path} to {new_file_path}")
@@ -76,11 +77,11 @@ def copy_files_into_project(input_dir, root_file, output_dir):
         shutil.copy(original_file_path, new_file_path)
 
 
-bib_file_regex = 'Database file #[0-9]*: (.*)'
-biber_file_regex = 'Found BibTeX data source \'(.*)\''
-bibitem_regex = '\\\\bibitem\{(.*)\}'
-biberitem_regex = '\\\\entry\{(.*?)\}'
-bibentry_regex = '(@[a-z]*\{([a-z0-9\-]*),\n(?:.*\n)*?\})'
+bib_file_regex = "Database file #[0-9]*: (.*)"
+biber_file_regex = "Found BibTeX data source '(.*)'"
+bibitem_regex = "\\\\bibitem\{(.*)\}"
+biberitem_regex = "\\\\entry\{(.*?)\}"
+bibentry_regex = "(@[a-z]*\{([a-z0-9\-]*),\n(?:.*\n)*?\})"
 
 
 def minimise_refs(input_dir, root_file, output_dir):
@@ -109,15 +110,19 @@ def minimise_refs(input_dir, root_file, output_dir):
                 bib_text = bib.read()
             bib_entries = re.findall(bibentry_regex, bib_text)
             # Filter out the unused keys
-            used_entries = list(map(lambda x: x[0], list(filter(
-                lambda entry: entry[1] in used_keys, bib_entries))))
+            used_entries = list(
+                map(
+                    lambda x: x[0],
+                    list(filter(lambda entry: entry[1] in used_keys, bib_entries)),
+                )
+            )
             # Write the used bib items to the new bib bile
             output_path = os.path.join(output_dir, file)
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             with open(output_path, "w") as w:
                 for entry in used_entries:
                     w.write(entry)
-                    w.write('\n')
+                    w.write("\n")
 
 
 def package_project(input_dir, root_file, output_dir):
@@ -127,7 +132,7 @@ def package_project(input_dir, root_file, output_dir):
     minimise_refs(input_dir, root_file, output_dir)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) == len(args) + 1:
         input_dir = sys.argv[1]
         root_file = sys.argv[2]
