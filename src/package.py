@@ -32,6 +32,7 @@ def move_and_replace(original_dir, file, new_dir):
 
 
 def compile_latex(input_dir, root_file, output_dir):
+    print("Compiling latex...")
     input_tex = os.path.join(input_dir, root_file + ".tex")
     # Clean first in case the last build was dodgy
     p = subprocess.run(["latexmk", "-c", "-cd", input_tex])
@@ -57,6 +58,7 @@ no_copy_extensions = ["aux", "out", "nav"]
 
 
 def copy_files_into_project(input_dir, root_file, output_dir):
+    print("Copying files into project...")
     # Open the log file
     output_log_file = root_file + ".log"
     with open(output_log_file, "r", encoding="utf-8", errors="ignore") as f:
@@ -72,7 +74,7 @@ def copy_files_into_project(input_dir, root_file, output_dir):
         file_name = file.replace("\npdf", "").replace("\n", "").replace("//", "/")
         original_file_path = os.path.join(input_dir, file_name)
         new_file_path = os.path.join(output_dir, file_name)
-        print(f"Copying {original_file_path} to {new_file_path}")
+        print(f"Copying {original_file_path} to {new_file_path}...")
         os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
         shutil.copy(original_file_path, new_file_path)
 
