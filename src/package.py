@@ -123,12 +123,16 @@ def minimise_refs(input_dir, root_file, output_dir):
                     w.write(entry)
                     w.write('\n')
 
+def zip_package(output_dir):
+    print("Zipping package...")
+    subprocess.run(["zip", "-qq", "-r", f"{output_dir}.zip", output_dir])
 
 def package_project(input_dir, root_file, output_dir):
     make_output_dir(output_dir)
     compile_latex(input_dir, root_file, output_dir)
     copy_files_into_project(input_dir, root_file, output_dir)
     minimise_refs(input_dir, root_file, output_dir)
+    zip_package(output_dir)
 
 
 if __name__ == '__main__':
