@@ -1,0 +1,16 @@
+name: Latex packager
+description: Package latex project for distribution
+inputs:
+  input-dir:
+    description: The directory the project lives in
+  main:
+    description: The basename of the main file
+  project-name:
+    description: The name of the project, to be used as the name of the produced packages
+runs:
+  using: docker
+  image: Dockerfile
+  args:
+    - ${{ inputs.input-dir }}
+    - ${{ inputs.main }}
+    - ${{ inputs.project-name }}
