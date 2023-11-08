@@ -42,7 +42,9 @@ def compile_latex(input_dir, root_file, output_dir):
     if not input_dir == ".":
         # Store the log in the current working directory so we can use it later
         move_and_replace(input_dir, f"{root_file}.log", ".")
-        move_and_replace(input_dir, f"{root_file}.blg", ".")
+        blg_file = f"{root_file}.blg"
+        if os.path.isfile(blg_file):
+            move_and_replace(input_dir, blg_file, ".")
         # Store the pdf in the current working directory so we can upload it
         move_and_replace(input_dir, f"{root_file}.pdf", ".")
 
@@ -83,17 +85,20 @@ bibentry_regex = '(@[a-z]*\{([a-z0-9\-]*),\n(?:.*\n)*?\})'
 
 
 def minimise_refs(input_dir, root_file, output_dir):
-    # First open the bbl file to find which keys are used
+    print("Minimising refs...")
+    # The bbl file lists the keys used
     bbl_file = os.path.join(output_dir, f"{root_file}.bbl")
-    # Make sure there actually is a bbl file, otherwise we can skip
-    if os.path.exists(bbl_file):
+    # The blg file lists the bibfiles used
+    blg_file = f"{root_file}.blg"
+    # Make sure there actually is a bbl or blg file, otherwise we can skip
+    if not (os.path.isfile(bbl_file) and os.path.isfile(blg_file)):
+        print("No bbl or blg file, skipping bibliography creation...")
+    else:
         with open(bbl_file) as bbl:
             bbl_text = bbl.read()
         used_bib_keys = re.findall(bibitem_regex, bbl_text)
         used_biber_keys = re.findall(biberitem_regex, bbl_text)
         used_keys = used_bib_keys + used_biber_keys
-        # Now open the blg file to find which bib resources are used
-        blg_file = f"{root_file}.blg"
         with open(blg_file, "r") as blg:
             blg_data = blg.read()
         bib_files = re.findall(bib_file_regex, blg_data)
