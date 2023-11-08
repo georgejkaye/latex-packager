@@ -6,7 +6,7 @@ This is a GitHub Action for compiling a latex project and packaging it into a mi
 
 ```yml
 - name: Package latex project
-  uses: georgejkaye/latex-packager@v1
+  uses: georgejkaye/latex-packager@v1.0
   with:
     input-dir: project
     main: main
