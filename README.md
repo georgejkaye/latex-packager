@@ -1,19 +1,14 @@
-# latex-scripts
+# latex-packager
 
-This repo contains some scripts I wrote to make my life easier.
+This is a GitHub Action for compiling a latex project and packaging it into a minimal project, perhaps for uploading onto arXiv or similar.
 
-(They might have been done before, I don't care)
+## Usage
 
-## `package.py`
-
-Bundles a latex file and all its dependencies into a minimal zip package.
-
-```sh
-python package.py output_dir input_dir root_file output_dir
-```
-
-e.g.
-
-```sh
-python package.py lics2023 main-conference lics2023-conference
+```yml
+- name: Package latex project
+  uses: georgejkaye/latex-packager@v1
+  with:
+    input-dir: project
+    main: main
+    project-name: output
 ```
