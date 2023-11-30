@@ -5,7 +5,7 @@ import sys
 import subprocess
 
 
-args = ["output_dir", "input_dir", "root_file"]
+args = ["input_dir", "root_file", "output_dir", "shell_escape"]
 
 
 def make_output_dir(output_dir):
@@ -31,13 +31,17 @@ def move_and_replace(original_dir, file, new_dir):
         print("No bbl file found, continuing...")
 
 
-def compile_latex(input_dir, root_file, output_dir):
+def compile_latex(input_dir, root_file, output_dir, shell_escape):
     print("Compiling latex...")
     input_tex = os.path.join(input_dir, root_file + ".tex")
     # Clean first in case the last build was dodgy
     p = subprocess.run(["latexmk", "-c", "-cd", input_tex])
     # Build the document
-    p = subprocess.run(["latexmk", "-pdf", "-cd", input_tex])
+    if shell_escape:
+        shell_escape_string = "--shell-escape"
+    else:
+        shell_escape_string = ""
+    p = subprocess.run(["latexmk", "-pdf", "-cd", shell_escape_string, input_tex])
     if p.returncode != 0:
         print("Could not compile document")
         exit(1)
@@ -53,10 +57,10 @@ def compile_latex(input_dir, root_file, output_dir):
         move_and_replace(input_dir, f"{root_file}.pdf", ".")
 
 
-source_file_regex = "\(\./([a-z0-9\-/\n]*\.([a-z\n]*))"
+source_file_regex = "\(\./([a-z0-9\-/\n]*\.([a-z0-9\n]*))"
 binary_file_regex = "<\./(.*?)(?:>|,)"
 
-no_copy_extensions = ["aux", "out", "nav"]
+no_copy_extensions = ["aux", "out", "nav", "w18"]
 
 
 def copy_files_into_project(input_dir, root_file, output_dir):
@@ -135,9 +139,9 @@ def zip_package(output_dir):
     print("Zipping package...")
     subprocess.run(["zip", "-qq", "-r", f"{output_dir}.zip", output_dir])
 
-def package_project(input_dir, root_file, output_dir):
+def package_project(input_dir, root_file, output_dir, shell_escape):
     make_output_dir(output_dir)
-    compile_latex(input_dir, root_file, output_dir)
+    compile_latex(input_dir, root_file, output_dir, shell_escape)
     copy_files_into_project(input_dir, root_file, output_dir)
     minimise_refs(input_dir, root_file, output_dir)
     zip_package(output_dir)
@@ -148,7 +152,8 @@ if __name__ == "__main__":
         input_dir = sys.argv[1]
         root_file = sys.argv[2]
         output_dir = sys.argv[3]
-        package_project(input_dir, root_file, output_dir)
+        shell_escape = bool(sys.argv[4])
+        package_project(input_dir, root_file, output_dir, shell_escape)
     else:
-        print("Usage: package.py <input_dir> <root_file> <output_dir>")
+        print(f"Usage: package.py {' '.join(list(map(lambda x: f'<{x}>', args)))}")
         exit(1)

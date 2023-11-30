@@ -7,6 +7,8 @@ inputs:
     description: The basename of the main file
   project-name:
     description: The name of the project, to be used as the name of the produced packages
+  shell-escape:
+    description: Whether you would like to enable shell escape
 runs:
   using: docker
   image: Dockerfile
@@ -14,3 +16,4 @@ runs:
     - ${{ inputs.input-dir }}
     - ${{ inputs.main }}
     - ${{ inputs.project-name }}
+    - ${{ inputs.shell-escape }}
