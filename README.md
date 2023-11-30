@@ -11,4 +11,5 @@ This is a GitHub Action for compiling a latex project and packaging it into a mi
     input-dir: project
     main: main
     project-name: output
+    shell-escape: true
 ```
