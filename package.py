@@ -4,7 +4,6 @@ import shutil
 import sys
 import subprocess
 
-
 args = ["input_dir", "root_file", "output_dir", "shell_escape"]
 
 
@@ -28,7 +27,7 @@ def move_and_replace(original_dir, file, new_dir):
     try:
         shutil.move(original_path, new_dir)
     except:
-        print("No bbl file found, continuing...")
+        print(f"{original_path} not found, continuing...")
 
 
 def compile_latex(input_dir, root_file, output_dir, shell_escape):
@@ -50,9 +49,6 @@ def compile_latex(input_dir, root_file, output_dir, shell_escape):
     if not input_dir == ".":
         # Store the log in the current working directory so we can use it later
         move_and_replace(input_dir, f"{root_file}.log", ".")
-        blg_file = f"{root_file}.blg"
-        if os.path.isfile(blg_file):
-            move_and_replace(input_dir, blg_file, ".")
         # Store the pdf in the current working directory so we can upload it
         move_and_replace(input_dir, f"{root_file}.pdf", ".")
 
@@ -73,7 +69,7 @@ def copy_files_into_project(input_dir, root_file, output_dir):
     source_files = re.findall(source_file_regex, log_text)
     all_files = re.findall(binary_file_regex, log_text)
     for file in source_files:
-        if not file[1].replace("\n", "") in no_copy_extensions:
+        if file[1].replace("\n", "") not in no_copy_extensions:
             all_files.append(file[0])
     for file in all_files:
         # Sometimes the file names are spliced across lines
@@ -83,11 +79,18 @@ def copy_files_into_project(input_dir, root_file, output_dir):
         print(f"Copying {original_file_path} to {new_file_path}...")
         os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
         shutil.copy(original_file_path, new_file_path)
+    # If SVGs have been used, we need the copy over the entire svg-inkscape
+    # directory
+    svg_tex_directory = os.path.join(input_dir, "svg-inkscape")
+    if os.path.isdir(svg_tex_directory):
+        output_svg_directory = os.path.join(output_dir, "svg-inkscape")
+        shutil.rmtree(output_svg_directory)
+        shutil.copytree(svg_tex_directory, output_svg_directory)
 
 
 bib_file_regex = "Database file #[0-9]*: (.*)"
 biber_file_regex = "Found BibTeX data source '(.*)'"
-bibitem_regex = "\\\\bibitem\{(.*)\}"
+bibitem_regex = "\\\\bibitem\[.*\]\{(.*)\}"
 biberitem_regex = "\\\\entry\{(.*?)\}"
 bibentry_regex = "(@[a-z]*\{([a-z0-9\-]*),\n(?:.*\n)*?\})"
 
@@ -97,17 +100,17 @@ def minimise_refs(input_dir, root_file, output_dir):
     # The bbl file lists the keys used
     bbl_file = os.path.join(output_dir, f"{root_file}.bbl")
     # The blg file lists the bibfiles used
-    blg_file = f"{root_file}.blg"
+    original_blg_file = os.path.join(input_dir, f"{root_file}.blg")
     # Make sure there actually is a bbl or blg file, otherwise we can skip
-    if not (os.path.isfile(bbl_file) and os.path.isfile(blg_file)):
-        print("No bbl or blg file, skipping bibliography creation...")
+    if not (os.path.isfile(bbl_file) and os.path.isfile(original_blg_file)):
+        print("No bbl or blg file found, skipping bibliography creation")
     else:
         with open(bbl_file) as bbl:
             bbl_text = bbl.read()
         used_bib_keys = re.findall(bibitem_regex, bbl_text)
         used_biber_keys = re.findall(biberitem_regex, bbl_text)
         used_keys = used_bib_keys + used_biber_keys
-        with open(blg_file, "r") as blg:
+        with open(original_blg_file, "r") as blg:
             blg_data = blg.read()
         bib_files = re.findall(bib_file_regex, blg_data)
         biber_files = re.findall(biber_file_regex, blg_data)
@@ -135,9 +138,11 @@ def minimise_refs(input_dir, root_file, output_dir):
                     w.write(entry)
                     w.write("\n")
 
+
 def zip_package(output_dir):
     print("Zipping package...")
     subprocess.run(["zip", "-qq", "-r", f"{output_dir}.zip", output_dir])
+
 
 def package_project(input_dir, root_file, output_dir, shell_escape):
     make_output_dir(output_dir)
