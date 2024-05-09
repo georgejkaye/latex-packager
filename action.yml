@@ -9,6 +9,12 @@ inputs:
     description: The name of the project, to be used as the name of the produced packages
   shell-escape:
     description: Whether you would like to enable shell escape
+    required: false
+    default: false
+  chapters:
+    description: Whether you would like individual chapter pdfs (requires `numbered` option to be used with bookmarks package)
+    required: false
+    default: false
 runs:
   using: docker
   image: Dockerfile
@@ -17,3 +23,4 @@ runs:
     - ${{ inputs.main }}
     - ${{ inputs.project-name }}
     - ${{ inputs.shell-escape }}
+    - ${{ inputs.chapters }}

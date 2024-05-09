@@ -4,7 +4,9 @@ import shutil
 import sys
 import subprocess
 
-args = ["input_dir", "root_file", "output_dir", "shell_escape"]
+from bookmarks import get_section_numbers, split_pdf
+
+args = ["input_dir", "root_file", "output_dir", "shell_escape", "chapters"]
 
 
 def make_output_dir(output_dir):
@@ -46,23 +48,22 @@ def compile_latex(input_dir, root_file, output_dir, shell_escape):
         exit(1)
     # Copy the root file into the output, as it's not imported in the log
     shutil.copy(input_tex, output_dir)
-    if not input_dir == ".":
-        # Store the log in the current working directory so we can use it later
-        move_and_replace(input_dir, f"{root_file}.log", ".")
-        # Store the pdf in the current working directory so we can upload it
-        move_and_replace(input_dir, f"{root_file}.pdf", ".")
+    # Store the log in the current working directory so we can use it later
+    move_and_replace(input_dir, f"{root_file}.log", f"./{output_dir}.log")
+    # Store the pdf in the current working directory so we can upload it
+    move_and_replace(input_dir, f"{root_file}.pdf", f"./{output_dir}.pdf")
 
 
-source_file_regex = "\(\./([a-z0-9\-/\n]*\.([a-z0-9\n]*))"
-binary_file_regex = "<\./(.*?)(?:>|,)"
+source_file_regex = r"\(\./([a-z0-9\-/\n]*\.([a-z0-9\n]*))"
+binary_file_regex = r"<\./(.*?)(?:>|,)"
 
 no_copy_extensions = ["aux", "out", "nav", "w18"]
 
 
-def copy_files_into_project(input_dir, root_file, output_dir):
+def copy_files_into_project(input_dir, output_dir, output_root):
     print("Copying files into project...")
     # Open the log file
-    output_log_file = root_file + ".log"
+    output_log_file = f"{output_root}.log"
     with open(output_log_file, "r", encoding="utf-8", errors="ignore") as f:
         log_text = f.read()
     # Find the files that are included by the build process
@@ -90,9 +91,9 @@ def copy_files_into_project(input_dir, root_file, output_dir):
 
 bib_file_regex = "Database file #[0-9]*: (.*)"
 biber_file_regex = "Found BibTeX data source '(.*)'"
-bibitem_regex = "\\\\bibitem\[.*\]\{(.*)\}"
-biberitem_regex = "\\\\entry\{(.*?)\}"
-bibentry_regex = "(@[a-z]*\{([a-z0-9\-]*),\n(?:.*\n)*?\})"
+bibitem_regex = r"\\\\bibitem\[.*\]\{(.*)\}"
+biberitem_regex = r"\\\\entry\{(.*?)\}"
+bibentry_regex = r"(@[a-z]*\{([a-z0-9\-]*),\n(?:.*\n)*?\})"
 
 
 def minimise_refs(input_dir, root_file, output_dir):
@@ -144,12 +145,19 @@ def zip_package(output_dir):
     subprocess.run(["zip", "-qq", "-r", f"{output_dir}.zip", output_dir])
 
 
-def package_project(input_dir, root_file, output_dir, shell_escape):
+def package_project(input_dir, root_file, output_dir, shell_escape, chapters):
     make_output_dir(output_dir)
     compile_latex(input_dir, root_file, output_dir, shell_escape)
-    copy_files_into_project(input_dir, root_file, output_dir)
+    copy_files_into_project(input_dir, output_dir, output_dir)
+    output_pdf = f"{output_dir}.pdf"
     minimise_refs(input_dir, root_file, output_dir)
     zip_package(output_dir)
+    if chapters:
+        bookmarks = get_section_numbers(output_pdf)
+        chapter_dir = f"{output_dir}-chapters"
+        make_output_dir(chapter_dir)
+        split_pdf(output_pdf, bookmarks, f"{chapter_dir}/{output_dir}")
+        zip_package(chapter_dir)
 
 
 if __name__ == "__main__":
@@ -158,7 +166,8 @@ if __name__ == "__main__":
         root_file = sys.argv[2]
         output_dir = sys.argv[3]
         shell_escape = bool(sys.argv[4])
-        package_project(input_dir, root_file, output_dir, shell_escape)
+        chapters = bool(sys.argv[5])
+        package_project(input_dir, root_file, output_dir, shell_escape, chapters)
     else:
         print(f"Usage: package.py {' '.join(list(map(lambda x: f'<{x}>', args)))}")
         exit(1)
