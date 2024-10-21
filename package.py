@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import re
 import shutil
 import sys
@@ -55,9 +56,16 @@ def compile_latex(input_dir, root_file, output_dir, shell_escape):
 
 
 source_file_regex = r"\(\./([a-z0-9\-/\n]*\.([a-z0-9\n]*))"
-binary_file_regex = r"<\./(.*?)(?:>|,)"
+binary_file_regex = r"<\./((?:.|\n)*?)(?:>|,)"
+svg_file_regex = r"svg-inkscape\/(.*)_svg-tex\.pdf"
 
 no_copy_extensions = ["aux", "out", "nav", "w18"]
+
+
+def make_dirs_and_copy_file(original_path, new_path):
+    print(f"Copying {original_path} to {new_path}...")
+    os.makedirs(os.path.dirname(new_path), exist_ok=True)
+    shutil.copy(original_path, new_path)
 
 
 def copy_files_into_project(input_dir, output_dir, output_root):
@@ -77,16 +85,21 @@ def copy_files_into_project(input_dir, output_dir, output_root):
         file_name = file.replace("\npdf", "").replace("\n", "").replace("//", "/")
         original_file_path = os.path.join(input_dir, file_name)
         new_file_path = os.path.join(output_dir, file_name)
-        print(f"Copying {original_file_path} to {new_file_path}...")
-        os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
-        shutil.copy(original_file_path, new_file_path)
-    # If SVGs have been used, we need the copy over the entire svg-inkscape
-    # directory
-    svg_tex_directory = os.path.join(input_dir, "svg-inkscape")
-    if os.path.isdir(svg_tex_directory):
-        output_svg_directory = os.path.join(output_dir, "svg-inkscape")
-        shutil.rmtree(output_svg_directory)
-        shutil.copytree(svg_tex_directory, output_svg_directory)
+        make_dirs_and_copy_file(original_file_path, new_file_path)
+        if "svg-inkscape" in file_name:
+            svg_tex_file_name = f"{file_name}_tex"
+            svg_tex_original_path = os.path.join(input_dir, svg_tex_file_name)
+            svg_tex_new_path = os.path.join(output_dir, svg_tex_file_name)
+            make_dirs_and_copy_file(svg_tex_original_path, svg_tex_new_path)
+            svg_root_file_name = f"{re.findall(svg_file_regex, file_name)[0]}.svg"
+            for root, _, files in os.walk(input_dir):
+                if svg_root_file_name in files:
+                    svg_input_path = os.path.join(root, svg_root_file_name)
+                    input_without_top = Path(*Path(root).parts[1:])
+                    svg_output_path = os.path.join(
+                        Path(output_dir / input_without_top), svg_root_file_name
+                    )
+                    make_dirs_and_copy_file(svg_input_path, svg_output_path)
 
 
 bib_file_regex = "Database file #[0-9]*: (.*)"
