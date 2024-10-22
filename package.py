@@ -56,7 +56,7 @@ def compile_latex(input_dir, root_file, output_dir, shell_escape):
 
 
 source_file_regex = r"\(\./([a-z0-9\-/\n]*\.([a-z0-9\n]*))"
-binary_file_regex = r"<\./((?:.|\n)*?)(?:>|,)"
+binary_file_regex = r"<\.\/((?:[A-Za-z0-9\/_\-\.])*(?:\n.*)?),?"
 svg_file_regex = r"svg-inkscape\/(.*)_svg-tex\.pdf"
 
 no_copy_extensions = ["aux", "out", "nav", "w18"]
@@ -92,13 +92,11 @@ def copy_files_into_project(input_dir, output_dir, output_root):
             svg_tex_new_path = os.path.join(output_dir, svg_tex_file_name)
             make_dirs_and_copy_file(svg_tex_original_path, svg_tex_new_path)
             svg_root_file_name = f"{re.findall(svg_file_regex, file_name)[0]}.svg"
-            for root, _, files in os.walk(input_dir):
+            for root, dirs, files in os.walk(input_dir):
                 if svg_root_file_name in files:
-                    svg_input_path = os.path.join(root, svg_root_file_name)
-                    input_without_top = Path(*Path(root).parts[1:])
-                    svg_output_path = os.path.join(
-                        Path(output_dir / input_without_top), svg_root_file_name
-                    )
+                    svg_input_path = Path(os.path.join(root, svg_root_file_name))
+                    local_path = svg_input_path.relative_to(input_dir)
+                    svg_output_path = Path(output_dir / local_path)
                     make_dirs_and_copy_file(svg_input_path, svg_output_path)
 
 
