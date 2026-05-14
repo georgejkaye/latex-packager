@@ -15,6 +15,10 @@ inputs:
     description: Whether you would like individual chapter pdfs (requires `numbered` option to be used with bookmarks package)
     required: false
     default: false
+  replace-tikzfigs:
+    description: Replace tikzfig invocations with generated pdfs
+    required: false
+    default: false
 runs:
   using: docker
   image: Dockerfile

@@ -6,8 +6,16 @@ import sys
 import subprocess
 
 from bookmarks import get_section_numbers, split_pdf
+from tikz import replace_tikzfigs_in_output_dir
 
-args = ["input_dir", "root_file", "output_dir", "shell_escape", "chapters"]
+args = [
+    "input_dir",
+    "root_file",
+    "output_dir",
+    "shell_escape",
+    "chapters",
+    "replace_tikzfigs",
+]
 
 
 def make_output_dir(output_dir):
@@ -35,7 +43,7 @@ def move_and_replace(original_dir, file, new_dir):
 
 def compile_latex(input_dir, root_file, output_dir, shell_escape):
     print("Compiling latex...")
-    input_tex = os.path.join(input_dir, root_file + ".tex")
+    input_tex = Path(input_dir) / f"{root_file}.tex"
     # Clean first in case the last build was dodgy
     p = subprocess.run(["latexmk", "-c", "-cd", input_tex])
     # Build the document
@@ -71,7 +79,7 @@ def make_dirs_and_copy_file(original_path, new_path):
 def copy_files_into_project(input_dir, output_dir, output_root):
     print("Copying files into project...")
     # Open the log file
-    output_log_file = f"{output_root}.log"
+    output_log_file = f"{output_dir}.log"
     with open(output_log_file, "r", encoding="utf-8", errors="ignore") as f:
         log_text = f.read()
     # Find the files that are included by the build process
@@ -156,10 +164,19 @@ def zip_package(output_dir):
     subprocess.run(["zip", "-qq", "-r", f"{output_dir}.zip", output_dir])
 
 
-def package_project(input_dir, root_file, output_dir, shell_escape, chapters):
+def package_project(
+    input_dir,
+    root_file,
+    output_dir,
+    shell_escape,
+    chapters,
+    replace_tikzfigs,
+):
     make_output_dir(output_dir)
     compile_latex(input_dir, root_file, output_dir, shell_escape)
-    copy_files_into_project(input_dir, output_dir, output_dir)
+    copy_files_into_project(input_dir, output_dir, root_file)
+    if replace_tikzfigs:
+        replace_tikzfigs_in_output_dir(input_dir, output_dir)
     output_pdf = f"{output_dir}.pdf"
     minimise_refs(input_dir, root_file, output_dir)
     zip_package(output_dir)
@@ -178,7 +195,10 @@ if __name__ == "__main__":
         output_dir = sys.argv[3]
         shell_escape = bool(sys.argv[4])
         chapters = bool(sys.argv[5])
-        package_project(input_dir, root_file, output_dir, shell_escape, chapters)
+        replace_tikzfigs = bool(sys.argv[6])
+        package_project(
+            input_dir, root_file, output_dir, shell_escape, chapters, replace_tikzfigs
+        )
     else:
         print(f"Usage: package.py {' '.join(list(map(lambda x: f'<{x}>', args)))}")
         exit(1)
