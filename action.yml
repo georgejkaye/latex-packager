@@ -28,3 +28,4 @@ runs:
     - ${{ inputs.project-name }}
     - ${{ inputs.shell-escape }}
     - ${{ inputs.chapters }}
+    - ${{ inputs.replace-tikzfigs }}
