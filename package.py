@@ -51,6 +51,7 @@ def compile_latex(input_dir, root_file, output_dir, shell_escape):
         shell_escape_string = "--shell-escape"
     else:
         shell_escape_string = ""
+    print(f"Running latexmk -pdf -cd {shell_escape_string} {input_tex}")
     p = subprocess.run(["latexmk", "-pdf", "-cd", shell_escape_string, input_tex])
     if p.returncode != 0:
         print("Could not compile document")
