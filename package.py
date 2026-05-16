@@ -6,6 +6,7 @@ import sys
 import subprocess
 
 from bookmarks import get_section_numbers, split_pdf
+from latex import compile_latex
 from tikz import replace_tikzfigs_in_output_dir
 
 args = [
@@ -18,11 +19,9 @@ args = [
 ]
 
 
-def make_output_dir(output_dir):
+def make_output_dir(output_dir: Path):
     if os.path.isdir(output_dir):
-        overwrite = input(
-            "Directory " + output_dir + " already exists, overwrite? (y/N) "
-        )
+        overwrite = input(f"Directory {output_dir} already exists, overwrite? (y/N) ")
         if not overwrite == "y":
             exit(1)
         shutil.rmtree(output_dir)
@@ -41,29 +40,6 @@ def move_and_replace(original_dir, file, new_dir):
         print(f"{original_path} not found, continuing...")
 
 
-def compile_latex(input_dir, root_file, output_dir, shell_escape):
-    print("Compiling latex...")
-    input_tex = Path(input_dir) / f"{root_file}.tex"
-    # Clean first in case the last build was dodgy
-    p = subprocess.run(["latexmk", "-c", "-cd", input_tex])
-    # Build the document
-    if shell_escape:
-        shell_escape_string = "--shell-escape"
-    else:
-        shell_escape_string = ""
-    print(f"Running latexmk -pdf -cd {shell_escape_string} {input_tex}")
-    p = subprocess.run(["latexmk", "-pdf", "-cd", shell_escape_string, input_tex])
-    if p.returncode != 0:
-        print("Could not compile document")
-        exit(1)
-    # Copy the root file into the output, as it's not imported in the log
-    shutil.copy(input_tex, output_dir)
-    # Store the log in the current working directory so we can use it later
-    move_and_replace(input_dir, f"{root_file}.log", f"./{output_dir}.log")
-    # Store the pdf in the current working directory so we can upload it
-    move_and_replace(input_dir, f"{root_file}.pdf", f"./{output_dir}.pdf")
-
-
 source_file_regex = r"\(\./([a-z0-9\-/\n]*\.([a-z0-9\n]*))"
 binary_file_regex = r"<\.\/((?:[A-Za-z0-9\/_\-\.])*(?:\n.*)?),?"
 svg_file_regex = r"svg-inkscape\/(.*)_svg-tex\.pdf"
@@ -77,8 +53,14 @@ def make_dirs_and_copy_file(original_path, new_path):
     shutil.copy(original_path, new_path)
 
 
-def copy_files_into_project(input_dir, output_dir, output_root):
+def copy_files_into_project(input_dir: Path, output_dir):
     print("Copying files into project...")
+    # Copy the root file into the output, as it's not imported in the log
+    shutil.copy(input_dir / f"{root_file_basename}.tex", output_dir)
+    # Store the log in the current working directory so we can use it later
+    move_and_replace(input_dir, f"{root_file_basename}.log", f"./{output_dir}.log")
+    # Store the pdf in the current working directory so we can upload it
+    move_and_replace(input_dir, f"{root_file_basename}.pdf", f"./{output_dir}.pdf")
     # Open the log file
     output_log_file = f"{output_dir}.log"
     with open(output_log_file, "r", encoding="utf-8", errors="ignore") as f:
@@ -166,24 +148,24 @@ def zip_package(output_dir):
 
 
 def package_project(
-    input_dir,
-    root_file,
-    output_dir,
-    shell_escape,
-    chapters,
-    replace_tikzfigs,
+    input_dir: Path,
+    root_file_basename: str,
+    output_dir: Path,
+    shell_escape: bool,
+    chapters: bool,
+    replace_tikzfigs: bool,
 ):
     make_output_dir(output_dir)
-    compile_latex(input_dir, root_file, output_dir, shell_escape)
-    copy_files_into_project(input_dir, output_dir, root_file)
+    compile_latex(input_dir, root_file_basename, output_dir, shell_escape)
+    copy_files_into_project(input_dir, output_dir)
     if replace_tikzfigs:
         replace_tikzfigs_in_output_dir(input_dir, output_dir)
     output_pdf = f"{output_dir}.pdf"
-    minimise_refs(input_dir, root_file, output_dir)
+    minimise_refs(input_dir, root_file_basename, output_dir)
     zip_package(output_dir)
     if chapters:
         bookmarks = get_section_numbers(output_pdf)
-        chapter_dir = f"{output_dir}-chapters"
+        chapter_dir = Path(f"{output_dir}-chapters")
         make_output_dir(chapter_dir)
         split_pdf(output_pdf, bookmarks, f"{chapter_dir}/{output_dir}")
         zip_package(chapter_dir)
@@ -196,13 +178,18 @@ def parse_bool(input: str) -> bool:
 if __name__ == "__main__":
     if len(sys.argv) == len(args) + 1:
         input_dir = sys.argv[1]
-        root_file = sys.argv[2]
+        root_file_basename = sys.argv[2]
         output_dir = sys.argv[3]
         shell_escape = parse_bool(sys.argv[4])
         chapters = parse_bool(sys.argv[5])
         replace_tikzfigs = parse_bool(sys.argv[6])
         package_project(
-            input_dir, root_file, output_dir, shell_escape, chapters, replace_tikzfigs
+            Path(input_dir),
+            root_file_basename,
+            Path(output_dir),
+            shell_escape,
+            chapters,
+            replace_tikzfigs,
         )
     else:
         print(f"Usage: package.py {' '.join(list(map(lambda x: f'<{x}>', args)))}")
