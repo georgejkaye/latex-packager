@@ -110,8 +110,8 @@ def copy_files_into_project(input_dir, output_dir, output_root):
 
 bib_file_regex = "Database file #[0-9]*: (.*)"
 biber_file_regex = "Found BibTeX data source '(.*)'"
-bibitem_regex = r"\\\\bibitem\[.*\]\{(.*)\}"
-biberitem_regex = r"\\\\entry\{(.*?)\}"
+bibitem_regex = r"\\bibitem\[.*?\]\{(.*?)\}"
+biberitem_regex = r"\\entry\{(.*?)\}"
 bibentry_regex = r"(@[a-z]*\{([a-z0-9\-]*),\n(?:.*\n)*?\})"
 
 
