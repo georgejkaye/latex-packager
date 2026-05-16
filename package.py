@@ -188,14 +188,18 @@ def package_project(
         zip_package(chapter_dir)
 
 
+def parse_bool(input: str) -> bool:
+    return input.lower() in ["true", "t", "1"]
+
+
 if __name__ == "__main__":
     if len(sys.argv) == len(args) + 1:
         input_dir = sys.argv[1]
         root_file = sys.argv[2]
         output_dir = sys.argv[3]
-        shell_escape = bool(sys.argv[4])
-        chapters = bool(sys.argv[5])
-        replace_tikzfigs = bool(sys.argv[6])
+        shell_escape = parse_bool(sys.argv[4])
+        chapters = parse_bool(sys.argv[5])
+        replace_tikzfigs = parse_bool(sys.argv[6])
         package_project(
             input_dir, root_file, output_dir, shell_escape, chapters, replace_tikzfigs
         )
