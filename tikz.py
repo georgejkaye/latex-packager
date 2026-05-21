@@ -1,7 +1,8 @@
 from pathlib import Path
 import re
-import subprocess
 import os.path
+
+from latex import invoke_latexmk
 
 tikzfig_regex = (
     r"\\iltikzfig\{(.*?)\}(?:\[((?:.*?=.*?(?:\[.*?\])?\], ?)*.*?=.*?(?:\[.*?\])?)\])?"
@@ -75,39 +76,42 @@ def replace_tikzfigs_in_file(file_path, tikz_output):
         f.write(new_content)
 
 
-def replace_tikzfigs_in_output_dir(input_dir, output_dir):
-    with open(Path(input_dir) / "tikzpreamble.tex", "r") as f:
-        preamble = f.read()
-
-    content = "\n".join(
-        ["\\documentclass[multi=page]{standalone}", preamble, "\\begin{document}"]
-    )
-
-    tikz_output = Path(output_dir) / f"{tikzfigures_basename}.tex"
-
-    if os.path.exists(tikz_output):
-        overwrite = input(f"File {tikz_output} already exists, overwrite? (y/N) ")
+def remove_tikz_tex_if_exists(output_path: Path):
+    if os.path.exists(output_path):
+        overwrite = input(f"File {output_path} already exists, overwrite? (y/N) ")
         if not overwrite == "y":
             exit(1)
-        os.remove(tikz_output)
+        os.remove(output_path)
 
-    with open(tikz_output, "w+") as f:
+
+def append_to_tikz_tex(output_path: Path, content: str):
+    with open(output_path, "a") as f:
         f.write(content)
 
+
+def replace_tikzfigs_in_files(output_dir: Path, output_path: Path):
     for root, _, files in os.walk(output_dir):
         for file in files:
             file_path = Path(root) / file
             extension = file_path.suffix
             if extension == ".tex":
-                replace_tikzfigs_in_file(file_path, tikz_output)
+                replace_tikzfigs_in_file(file_path, output_path)
 
-    with open(tikz_output, "a") as f:
-        f.write("\\end{document}")
 
-    p = subprocess.run(["latexmk", "-pdf", "-cd", tikz_output])
-    if p.returncode != 0:
-        print(f"Could not compile {tikz_output}")
-        exit(1)
+def get_tikz_preamble(input_dir: Path) -> str:
+    with open(Path(input_dir) / "tikzpreamble.tex", "r") as f:
+        preamble = f.read()
+    return "\n".join(
+        ["\\documentclass[multi=page]{standalone}", preamble, "\\begin{document}"]
+    )
 
-    for i, match in enumerate(matches):
-        print(f"{i}: {match}")
+
+def replace_tikzfigs_in_output_dir(input_dir: Path, output_dir: Path):
+    tikz_tex_path = Path(output_dir) / f"{tikzfigures_basename}.tex"
+    tikz_tex_preamble = get_tikz_preamble(input_dir)
+    append_to_tikz_tex(tikz_tex_path, tikz_tex_preamble)
+    replace_tikzfigs_in_files(output_dir, tikz_tex_path)
+    append_to_tikz_tex(tikz_tex_path, "\\end{document}")
+    invoke_latexmk(["-pdf", "-cd", tikz_tex_path])
+    invoke_latexmk(["-c", "-cd", tikz_tex_path])
+    os.remove(tikz_tex_path)
