@@ -8,6 +8,7 @@ tikzfig_regex = (
     r"\\iltikzfig\{(.*?)\}(?:\[((?:.*?=.*?(?:\[.*?\])?\], ?)*.*?=.*?(?:\[.*?\])?)\])?"
 )
 tikzfigures_basename = "tikzfigures"
+tikzfigures_file = f"{tikzfigures_basename}.tex"
 
 
 matches = []
@@ -94,7 +95,7 @@ def replace_tikzfigs_in_files(output_dir: Path, output_path: Path):
         for file in files:
             file_path = Path(root) / file
             extension = file_path.suffix
-            if extension == ".tex":
+            if extension == ".tex" and file != tikzfigures_file:
                 replace_tikzfigs_in_file(file_path, output_path)
 
 
@@ -107,7 +108,7 @@ def get_tikz_preamble(input_dir: Path) -> str:
 
 
 def replace_tikzfigs_in_output_dir(input_dir: Path, output_dir: Path):
-    tikz_tex_path = Path(output_dir) / f"{tikzfigures_basename}.tex"
+    tikz_tex_path = Path(output_dir) / tikzfigures_file
     tikz_tex_preamble = get_tikz_preamble(input_dir)
     append_to_tikz_tex(tikz_tex_path, tikz_tex_preamble)
     replace_tikzfigs_in_files(output_dir, tikz_tex_path)
