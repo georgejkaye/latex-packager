@@ -12,8 +12,19 @@ def invoke_latexmk(args: list[Any]):
         exit(1)
 
 
-def compile_latex(input_dir, root_file, output_dir, shell_escape):
-    print("Compiling latex...")
+def get_latexmk_engine_argument(engine):
+    if engine == "pdflatex":
+        return None
+    if engine == "lualatex":
+        return "--pdflua"
+    if engine == "xelatex":
+        return "--xelatex"
+    raise RuntimeError(f"Latex engine {engine} not supported")
+
+
+def compile_latex(input_dir, root_file, engine, shell_escape):
+    engine_argument = get_latexmk_engine_argument(engine)
+    print(f"Compiling latex with {engine}...")
     input_tex = Path(input_dir) / f"{root_file}.tex"
     # Clean first in case the last build was dodgy
     invoke_latexmk(["-c", "-cd", input_tex])
@@ -21,4 +32,6 @@ def compile_latex(input_dir, root_file, output_dir, shell_escape):
     base_args = ["-pdf", "-cd", input_tex]
     if shell_escape:
         base_args.append("--shell-escape")
+    if engine_argument is not None:
+        base_args.append(engine_argument)
     invoke_latexmk(base_args)

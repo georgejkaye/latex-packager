@@ -13,6 +13,7 @@ args = [
     "input_dir",
     "root_file",
     "output_dir",
+    "engine",
     "shell_escape",
     "chapters",
     "replace_tikzfigs",
@@ -151,12 +152,13 @@ def package_project(
     input_dir: Path,
     root_file_basename: str,
     output_dir: Path,
+    engine: str,
     shell_escape: bool,
     chapters: bool,
     replace_tikzfigs: bool,
 ):
     make_output_dir(output_dir)
-    compile_latex(input_dir, root_file_basename, output_dir, shell_escape)
+    compile_latex(input_dir, root_file_basename, engine, shell_escape)
     copy_files_into_project(input_dir, output_dir)
     if replace_tikzfigs:
         replace_tikzfigs_in_output_dir(input_dir, output_dir)
@@ -180,13 +182,15 @@ if __name__ == "__main__":
         input_dir = sys.argv[1]
         root_file_basename = sys.argv[2]
         output_dir = sys.argv[3]
-        shell_escape = parse_bool(sys.argv[4])
-        chapters = parse_bool(sys.argv[5])
-        replace_tikzfigs = parse_bool(sys.argv[6])
+        engine = sys.argv[4]
+        shell_escape = parse_bool(sys.argv[5])
+        chapters = parse_bool(sys.argv[6])
+        replace_tikzfigs = parse_bool(sys.argv[7])
         package_project(
             Path(input_dir),
             root_file_basename,
             Path(output_dir),
+            engine,
             shell_escape,
             chapters,
             replace_tikzfigs,
