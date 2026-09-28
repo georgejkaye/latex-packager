@@ -42,7 +42,7 @@ def move_and_replace(original_dir, file, new_dir):
 
 
 source_file_regex = r"\(\./([a-z0-9\-/\n]*\.([a-z0-9\n]*))"
-binary_file_regex = r"<\.\/((?:[A-Za-z0-9\/_\-\.])*(?:\n.*)?),?"
+binary_file_regex = r"<\.\/((?:[A-Za-z0-9\/_\-\.])*(?:\n.*)?),?>"
 svg_file_regex = r"svg-inkscape\/(.*)_svg-tex\.pdf"
 
 no_copy_extensions = ["aux", "out", "nav", "w18"]
